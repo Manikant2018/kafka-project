@@ -5,10 +5,11 @@ server:
 kafka:
   topic:
     name: api-log-topic
+    anomaly-alerts: anomaly-alerts-topic # New topic for anomaly alerts
 
 logging:
   retention:
-    days: 30  # Keep logs for 30 days
+    days: 30
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - [traceId=%X{traceId:-}, spanId=%X{spanId:-}] - %msg%n"
   level:
@@ -56,7 +57,8 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
-      group-id: logging-group
+      group-id: logging-group # For LogConsumerService
+      anomaly-group-id: anomaly-detector-group # New group for AnomalyDetectionService
       auto-offset-reset: earliest
       enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -81,3 +83,13 @@ management:
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
+
+anomaly:
+  detection:
+    threshold:
+      execution-time-ms: 500 # Example: Flag if API takes longer than 500ms
+  remediation:
+    suggestions:
+      HIGH_LATENCY: "Investigate resource contention (CPU/Memory) or database performance. Check external dependencies."
+      SERVER_ERROR: "Review recent deployments. Check application logs for detailed stack traces. Verify database connectivity."
+      # Add more specific suggestions here
